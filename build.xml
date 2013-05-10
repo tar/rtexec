@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="rtexec" basedir="." default="all">
+  <property environment="env"/>
+  <condition property="jamaica" value="${env.JAMAICA}" else="/usr/local/jamaica-6.2-2">
+    <isset property="env.JAMAICA"/>
+  </condition>
+  <property name="target.platform" value="linux-x86_64"/>
+  <property name="javac.classpath" value="classes"/>
+  <property name="javac.bootclasspath" value="${jamaica}/target/${target.platform}/lib/rt.jar"/>
+	
+	
+	<fileset id="lib.jars" dir="lib/">
+		<include name="*.jar" />
+		<exclude name="*javadoc*.jar" />
+	</fileset>
+	
+	<path id="application.classpath">
+		<fileset refid="lib.jars" />
+	</path>
+	
+  <!-- define Jamaica tasks -->
+  <target name="taskdefs">
+    <fail message="JamaicaTools.jar not found. Please ensure that the JAMAICA environment variable
+is set and points to a valid Jamaica distribution">
+      <condition>
+        <not>
+          <available file="${jamaica}/lib/JamaicaTools.jar"/>
+        </not>
+      </condition>
+    </fail>
+    <taskdef name="jamaicabuilder" classname="com.aicas.jamaica.tools.ant.JamaicaTask" classpath="${jamaica}/lib/JamaicaTools.jar"/>
+  </target>
+
+<!--                            Dependencies                               -->
+
+  <target name="all" depends="rtexec"/>
+
+
+  <target name="clean">
+    <delete dir="classes"/>
+    <delete dir="tmp"/>
+    <delete file="RTHelloWorld"/>
+  </target>
+
+  <target name="classes">
+    <mkdir dir="${javac.classpath}"/>
+    <unzip  dest="${javac.classpath}"  overwrite="true">
+    	<fileset refid="lib.jars"/>
+    </unzip>
+    <javac srcdir="src"
+           destdir="${javac.classpath}"
+           classpath="${javac.classpath}"
+           bootclasspath="${javac.bootclasspath}">
+    	<classpath refid="application.classpath" />
+    </javac>       
+  </target>
+
+  <target name="rtexec"
+          depends="taskdefs, classes, check.uptodate"
+          unless="isUpToDate">
+    <jamaicabuilder jamaica="${jamaica}">
+      <classpath value="classes"/>
+      <target value="${target.platform}"/>
+      <interpret value="true"/>
+      <setGraphics value="none"/>
+      <destination value="rtexec"/>
+      <main value="ru.spbstu.rtexec.server.TestServerSocket"/>
+    </jamaicabuilder>
+  </target>
+
+  <target name="check.uptodate">
+    <uptodate property="isUpToDate" targetfile="rtexec">
+      <srcfiles dir="${basedir}/classes" includes="*.class"/>
+    </uptodate>
+  </target>
+
+  <target name="run" depends="all">
+    <exec executable="${basedir}/rtexec"/>
+  </target>
+</project>
+
+<!--- end of file -->
