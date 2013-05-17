@@ -34,7 +34,7 @@ is set and points to a valid Jamaica distribution">
 
 <!--                            Dependencies                               -->
 
-  <target name="all" depends="rtexec"/>
+  <target name="all" depends="rtexec_server, rtexec_client"/>
 
 
   <target name="clean">
@@ -56,7 +56,7 @@ is set and points to a valid Jamaica distribution">
     </javac>       
   </target>
 
-  <target name="rtexec"
+  <target name="rtexec_server"
           depends="taskdefs, classes, check.uptodate"
           unless="isUpToDate">
     <jamaicabuilder jamaica="${jamaica}">
@@ -64,8 +64,21 @@ is set and points to a valid Jamaica distribution">
       <target value="${target.platform}"/>
       <interpret value="true"/>
       <setGraphics value="none"/>
-      <destination value="rtexec"/>
+      <destination value="rtexec_server"/>
       <main value="ru.spbstu.rtexec.server.TestServerSocket"/>
+    </jamaicabuilder>
+  </target>
+
+  <target name="rtexec_client"
+          depends="taskdefs, classes, check.uptodate"
+          unless="isUpToDate">
+    <jamaicabuilder jamaica="${jamaica}">
+      <classpath value="classes"/>
+      <target value="${target.platform}"/>
+      <interpret value="true"/>
+      <setGraphics value="none"/>
+      <destination value="rtexec_client"/>
+      <main value="ru.spbstu.rtexec.client.TestSocket"/>
     </jamaicabuilder>
   </target>
 
