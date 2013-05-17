@@ -24,20 +24,25 @@ public class TestSocket {
 		@Override
 		public void run() {
 			try {
+                System.out.println("connect...");
 				Socket socket = new Socket("localhost", 10000);
-				RealTimeTask task = new RealTimeTask(_index, 30 + _index);
+                System.out.println("connection was established");
+                System.out.println("create new task id=" + _index);
+                RealTimeTask task = new RealTimeTask(_index, 30 + _index);
 				if (_index == 3) {
 					task.setPoisonPill(true);
 				}
 				PrintWriter pw = new PrintWriter(socket.getOutputStream());
-				System.out.println(gson.toJson(task));
+                System.out.println("serialize task and send as json");
+                System.out.println(gson.toJson(task));
 				pw.println(gson.toJson(task));
 				pw.flush();
 				Scanner scanner = new Scanner(socket.getInputStream());
 				StringBuilder sb = new StringBuilder();
 				while (scanner.hasNextLine()) {
 					String resultLine = scanner.next();
-					sb.append(resultLine);
+                    System.out.println("buffer was received: " + resultLine);
+                    sb.append(resultLine);
 					System.out.println(resultLine);
 				}
 				socket.close();

@@ -1,7 +1,6 @@
 package ru.spbstu.rtexec.server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -29,18 +28,22 @@ public class TestServerSocket {
 		try {
 			ServerSocket serverSocket = new ServerSocket(10000);
 			while (true) {
+                System.out.println("waiting connection...");
 				Socket socket = serverSocket.accept();
-				SocketChannel channel = socket.getChannel();
-				ByteBuffer bb = ByteBuffer.allocate(8 * 1024);
-				StringBuilder sb = new StringBuilder();
-				while (channel.read(bb) != -1) {
-					bb.flip();
-					System.out.println(new String(bb.array()));
-					sb.append(new String(bb.array()));
-					bb.clear();
-					bb.flip();
-				}
-				RealTimeTask task = gson.fromJson(sb.toString(), RealTimeTask.class);
+                System.out.println("connection was accepted");
+                InputStream inputStream = socket.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                System.out.println("start message receiving from input stream " + inputStream);
+				String line = reader.readLine();
+				if (line == null)
+                {
+                    System.out.println("error while receiving message");
+                    continue;
+                }
+                System.out.println("new buffer was received: " + line);
+
+                System.out.println("deserialize object");
+				RealTimeTask task = gson.fromJson(line, RealTimeTask.class);
 				if (task == null) {
 					System.out.println("cant deserialize");
 				}
@@ -48,6 +51,7 @@ public class TestServerSocket {
 					List<Runnable> queuedTasks = _executor.shutdownNow();
 					// TODO stop service
 				}
+                System.out.println("schedule new task id=" + task.getId());
 				ScheduledFuture<RealTimeTask> future = _executor.schedule(new ExecutableTask(task), 0,
 						TimeUnit.MILLISECONDS);
 				String result = "";
