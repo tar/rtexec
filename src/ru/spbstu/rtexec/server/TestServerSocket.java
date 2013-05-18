@@ -69,6 +69,7 @@ public class TestServerSocket {
 				PrintWriter pw = new PrintWriter(socket.getOutputStream());
 				pw.println(result);
 				pw.flush();
+                socket.close();
 			}
 		} catch (IOException e) {
 			System.err.println(e.getMessage());

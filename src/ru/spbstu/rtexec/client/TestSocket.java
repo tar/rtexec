@@ -1,6 +1,8 @@
 package ru.spbstu.rtexec.client;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -28,7 +30,7 @@ public class TestSocket {
 				Socket socket = new Socket("localhost", 10000);
                 System.out.println("connection was established");
                 System.out.println("create new task id=" + _index);
-                RealTimeTask task = new RealTimeTask(_index, 30 + _index);
+                RealTimeTask task = new RealTimeTask(_index, 300 + _index);
 				if (_index == 3) {
 					task.setPoisonPill(true);
 				}
@@ -37,10 +39,13 @@ public class TestSocket {
                 System.out.println(gson.toJson(task));
 				pw.println(gson.toJson(task));
 				pw.flush();
-				Scanner scanner = new Scanner(socket.getInputStream());
-				StringBuilder sb = new StringBuilder();
-				while (scanner.hasNextLine()) {
-					String resultLine = scanner.next();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                String resultLine;
+                StringBuilder sb = new StringBuilder();
+
+                while ( (resultLine = reader.readLine()) != null ) {
                     System.out.println("buffer was received: " + resultLine);
                     sb.append(resultLine);
 					System.out.println(resultLine);
@@ -49,9 +54,9 @@ public class TestSocket {
 				String result = sb.toString();
 				if (result.startsWith("{")) {
 					RealTimeTask exTask = gson.fromJson(result, RealTimeTask.class);
-					System.out.println("Task executed. time = " + (exTask.getEndTime() - exTask.getStartTime()));
+					System.out.println("Task " + _index + " was executed. time = " + (exTask.getEndTime() - exTask.getStartTime()));
 				}else {
-					System.err.println("Task isn't executed");					
+					System.err.println("Task " + _index + " isn't executed");
 				}
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
@@ -63,8 +68,10 @@ public class TestSocket {
 	}
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 10; i++) {
 			new Thread(new KnockKnock(i)).start();
 		}
+
+
 	}
 }
