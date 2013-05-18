@@ -6,12 +6,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import ru.spbstu.rtexec.model.ExecutableTask;
 import ru.spbstu.rtexec.model.RealTimeTask;
@@ -52,11 +47,15 @@ public class TestServerSocket {
 					// TODO stop service
 				}
                 System.out.println("schedule new task id=" + task.getId());
-				ScheduledFuture<RealTimeTask> future = _executor.schedule(new ExecutableTask(task), 0,
+
+                String result = "";
+                try {
+                    ScheduledFuture<RealTimeTask> future = _executor.schedule(new ExecutableTask(task), 0,
 						TimeUnit.MILLISECONDS);
-				String result = "";
-				try {
-					result = gson.toJson(future.get(task.getDirectiveTime(), TimeUnit.MILLISECONDS));
+
+                    result = gson.toJson(future.get(task.getDirectiveTime(), TimeUnit.MILLISECONDS));
+                } catch (RejectedExecutionException e) {
+                    System.out.println("execution for task " + task.getId() + " was rejected");
 				} catch (InterruptedException e) {
 					System.err.println(e.getMessage());
 					result = "Error";
