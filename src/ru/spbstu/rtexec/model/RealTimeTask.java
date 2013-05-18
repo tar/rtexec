@@ -1,6 +1,8 @@
 package ru.spbstu.rtexec.model;
 
-public class RealTimeTask {
+import java.io.Serializable;
+
+public class RealTimeTask implements Serializable{
 
 	private long _id;
 	private long _startTime;
