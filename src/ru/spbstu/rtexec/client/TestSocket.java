@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
@@ -43,21 +44,25 @@ public class TestSocket {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                 String resultLine;
-                StringBuilder sb = new StringBuilder();
 
-                while ( (resultLine = reader.readLine()) != null ) {
+                try {
+                    resultLine = reader.readLine();
                     System.out.println("buffer was received: " + resultLine);
-                    sb.append(resultLine);
-					System.out.println(resultLine);
-				}
-				socket.close();
-				String result = sb.toString();
-				if (result.startsWith("{")) {
-					RealTimeTask exTask = gson.fromJson(result, RealTimeTask.class);
-					System.out.println("Task " + _index + " was executed. time = " + (exTask.getEndTime() - exTask.getStartTime()));
-				}else {
-					System.err.println("Task " + _index + " isn't executed");
-				}
+                    System.out.println(resultLine);
+
+                    if (resultLine.startsWith("{")) {
+                        RealTimeTask exTask = gson.fromJson(resultLine, RealTimeTask.class);
+                        System.out.println("Task " + _index + " was executed. time = " + (exTask.getEndTime() - exTask.getStartTime()));
+                    }else {
+                        System.err.println("Task " + _index + " isn't executed");
+                    }
+
+                } catch (SocketException e) {
+
+                } finally {
+                    socket.close();
+                }
+
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
